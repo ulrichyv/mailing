@@ -1,12 +1,26 @@
 import streamlit as st
 from datetime import datetime
 from data_manager import save_email_templates
+from ai_template_generator import ai_template_interface
 
 def template_section():
     st.header("📝 Gestion des Templates d'Emails")
+    
+    # === Nouvel onglet pour l'IA ===
+    tab1, tab2 = st.tabs(["📝 Création Manuelle", "🤖 Génération IA"])
+    
+    with tab1:
+        manual_template_creation()
+    
+    with tab2:
+        ai_template_section()
+    
+    # Afficher les templates existants
+    display_existing_templates()
 
-    # === Création d'un nouveau template ===
-    with st.expander("Créer un nouveau template"):
+def manual_template_creation():
+    """Version originale de la création manuelle"""
+    with st.expander("Créer un nouveau template", expanded=True):
         with st.form("template_form"):
             template_name = st.text_input("Nom du template*")
             email_subject = st.text_input("Sujet de l'email*")
@@ -43,19 +57,59 @@ def template_section():
                         "subject": email_subject,
                         "html": html_content if option in ["HTML uniquement", "Texte + HTML"] else None,
                         "text": text_content if option in ["Texte uniquement", "Texte + HTML"] else None,
-                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "source": "manual"
                     }
                     save_email_templates(st.session_state.email_templates)
                     st.success(f"✅ Template '{template_name}' sauvegardé avec succès !")
+                    st.rerun()
 
-    # === Edition des templates existants ===
-    st.subheader("Templates existants")
+def ai_template_section():
+    """Interface pour la génération IA"""
+    ai_template_interface()
+    
+    # Si un template IA a été sélectionné, pré-remplir le formulaire
+    if hasattr(st.session_state, 'selected_ai_template') and st.session_state.selected_ai_template:
+        template = st.session_state.selected_ai_template
+        
+        st.info("🎯 Template IA sélectionné - Complétez les informations ci-dessous")
+        
+        with st.form("ai_template_finalize"):
+            template_name = st.text_input("Nom du template*", value=f"Template IA - {datetime.now().strftime('%H:%M')}")
+            email_subject = st.text_input("Sujet de l'email*", value="Votre email personnalisé")
+            
+            # Aperçu final
+            st.markdown("**Aperçu du template généré :**")
+            st.components.v1.html(template['html'], height=300, scrolling=True)
+            
+            if st.form_submit_button("💾 Sauvegarder ce template"):
+                st.session_state.email_templates[template_name] = {
+                    "subject": email_subject,
+                    "html": template['html'],
+                    "text": template['text'],
+                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "source": "ia_generated"
+                }
+                save_email_templates(st.session_state.email_templates)
+                del st.session_state.selected_ai_template
+                st.success("✅ Template IA sauvegardé !")
+                st.rerun()
+
+def display_existing_templates():
+    """Affiche les templates existants"""
+    st.subheader("📂 Templates existants")
+    
     if st.session_state.email_templates:
         template_names = list(st.session_state.email_templates.keys())
         selected_template = st.selectbox("Sélectionner un template à modifier", [""] + template_names)
 
         if selected_template:
             template = st.session_state.email_templates[selected_template]
+            
+            # Indicateur de source
+            source_badge = "🤖 IA" if template.get("source") == "ia_generated" else "✍️ Manuel"
+            st.write(f"**Source :** {source_badge}")
+            
             with st.form("edit_template_form"):
                 new_name = st.text_input("Nom du template", value=selected_template)
                 new_subject = st.text_input("Sujet", value=template["subject"])
@@ -101,7 +155,8 @@ def template_section():
                             "subject": new_subject,
                             "html": new_html if option_edit in ["HTML uniquement", "Texte + HTML"] else None,
                             "text": new_text if option_edit in ["Texte uniquement", "Texte + HTML"] else None,
-                            "created_at": template.get("created_at", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                            "created_at": template.get("created_at", datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                            "source": template.get("source", "manual")
                         }
                         save_email_templates(st.session_state.email_templates)
                         st.success("✅ Template mis à jour avec succès !")

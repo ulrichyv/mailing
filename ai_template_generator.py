@@ -95,12 +95,12 @@ class AITemplateGenerator:
             st.error(f"❌ Erreur lors de la génération: {e}")
             return self._generate_basic_template(prompt, style_preference)
 
-    # === MÉTHODES DE GÉNÉRATION (identiques à avant) ===
+    # === MÉTHODES DE GÉNÉRATION ===
     def _generate_with_gemini(self, prompt, style_preference, api_key=None, ollama_model=None, ollama_url=None):
         """Génération avec le NOUVEAU SDK Google GenAI"""
         try:
             if not api_key:
-                st.warning("🔑 Clé API Google Gemini requise - Obtenez-la gratuitement sur https://aistudio.google.com")
+                st.warning("🔑 Clé API Google Gemini requise")
                 return self._generate_basic_template(prompt, style_preference)
             
             try:
@@ -145,7 +145,7 @@ class AITemplateGenerator:
         """Génération avec Groq API"""
         try:
             if not api_key:
-                st.warning("🔑 Clé API Groq requise - https://console.groq.com")
+                st.warning("🔑 Clé API Groq requise")
                 return self._generate_basic_template(prompt, style_preference)
             
             url = "https://api.groq.com/openai/v1/chat/completions"
@@ -189,7 +189,6 @@ class AITemplateGenerator:
             st.error(f"❌ Erreur avec Groq: {e}")
             return self._generate_basic_template(prompt, style_preference)
 
-    # ... [Les autres méthodes _generate_with_ollama, _generate_with_openai, _generate_with_anthropic restent identiques] ...
     def _generate_with_ollama(self, prompt, style_preference, api_key=None, ollama_model="mistral:7b", ollama_url="http://localhost:11434"):
         debug_info = []
         try:
@@ -306,7 +305,7 @@ class AITemplateGenerator:
             st.error(f"❌ Erreur inattendue avec Anthropic: {e}")
             return self._generate_basic_template(prompt, style_preference)
 
-    # ... [Les méthodes de templates prédéfinis restent identiques] ...
+    # === TEMPLATES PRÉDÉFINIS ===
     def _generate_basic_template(self, prompt, style_preference, api_key=None, ollama_model=None, ollama_url=None):
         styles_config = {
             "professional": {"primary": "#2563eb", "secondary": "#1e40af", "bg_color": "#f8fafc"},
@@ -620,7 +619,7 @@ class AITemplateGenerator:
 </body>
 </html>"""
 
-    # ... [Les méthodes utilitaires restent identiques] ...
+    # === PROMPTS SYSTÈMES ===
     def _get_optimized_prompt(self, style_preference, user_prompt):
         return f"""CRÉE UN EMAIL HTML SIMPLE ET RAPIDE.
 
@@ -967,6 +966,71 @@ def manage_template_variables_advanced(template_html, detected_variables):
     
     return preview_html, all_variables
 
+# === DOCUMENTATION POUR OBTENIR LES TOKENS ===
+def show_api_key_help(model_choice, model_category):
+    """Affiche l'aide pour obtenir les clés API"""
+    
+    help_info = {
+        "Google Gemini": {
+            "link": "https://aistudio.google.com/",
+            "steps": [
+                "🌐 Allez sur Google AI Studio",
+                "🔑 Connectez-vous avec votre compte Google",
+                "📝 Cliquez sur 'Get API Key'", 
+                "🚀 Copiez votre clé et collez-la ci-dessous",
+                "🆓 60 requêtes/minute gratuitement"
+            ],
+            "free": True
+        },
+        "Groq (Llama 3)": {
+            "link": "https://console.groq.com/",
+            "steps": [
+                "🌐 Allez sur Groq Console",
+                "🔑 Créez un compte gratuit",
+                "📝 Générez une clé API dans l'onglet API Keys",
+                "🚀 Copiez votre clé et collez-la ci-dessous",
+                "🆓 Crédits gratuits inclus"
+            ],
+            "free": True
+        },
+        "OpenAI GPT-4": {
+            "link": "https://platform.openai.com/api-keys",
+            "steps": [
+                "🌐 Allez sur OpenAI Platform",
+                "🔑 Connectez-vous à votre compte",
+                "💳 Ajoutez une méthode de paiement",
+                "📝 Créez une nouvelle clé API",
+                "🚀 Copiez votre clé sécurisée"
+            ],
+            "free": False
+        },
+        "Claude (Anthropic)": {
+            "link": "https://console.anthropic.com/",
+            "steps": [
+                "🌐 Allez sur Anthropic Console", 
+                "🔑 Créez votre compte",
+                "💳 Ajoutez une méthode de paiement",
+                "📝 Générez une clé API",
+                "🚀 Copiez votre clé sécurisée"
+            ],
+            "free": False
+        }
+    }
+    
+    info = help_info.get(model_choice, {})
+    if info:
+        with st.expander(f"ℹ️ Comment obtenir ma clé {model_choice} ?", expanded=False):
+            st.markdown(f"**Lien :** [{info['link']}]({info['link']})")
+            
+            st.markdown("**Étapes :**")
+            for step in info['steps']:
+                st.write(f"• {step}")
+            
+            if info['free'] and "GRATUITS" in model_category:
+                st.success("🆓 **Gratuit** - Pas de carte de crédit requise")
+            elif not info['free']:
+                st.info("💳 **Payant** - Carte de crédit requise")
+
 # === INTERFACE STREAMLIT PRINCIPALE ===
 def ai_template_interface():
     """Interface pour la génération IA de templates - Version BYOK avec variables"""
@@ -1004,6 +1068,9 @@ def ai_template_interface():
         if "BYOK" in model_category:
             st.markdown("---")
             st.markdown("### 🔑 Configuration API")
+            
+            # Afficher l'aide pour obtenir la clé
+            show_api_key_help(model_choice, model_category)
             
             help_links = {
                 "Google Gemini": "https://aistudio.google.com/",
@@ -1048,6 +1115,41 @@ def ai_template_interface():
                         st.success("✅ Ollama accessible!")
                     else:
                         st.error("❌ Ollama inaccessible")
+    
+    # Conseils selon la catégorie
+    with st.expander("💡 Conseils pour de meilleurs résultats", expanded=True):
+        if model_category == "🆓 GRATUITS (BYOK)":
+            st.info("""
+            **🎯 Modèles Gratuits (BYOK) :**
+            - **Google Gemini** : 60 req/min gratuites, excellente qualité
+            - **Groq** : Très rapide, modèle Llama 3 gratuit
+            - **Clés perso** : Vos clés restent sur votre machine
+            - **Sécurisé** : Aucune donnée envoyée à nos serveurs
+            """)
+        elif model_category == "💰 PREMIUM (BYOK)":
+            st.info("""
+            **🎯 Modèles Premium (BYOK) :**
+            - **Meilleure qualité** : GPT-4 et Claude excellents
+            - **Plus rapide** : Réponses en quelques secondes
+            - **Coûts** : Vous payez seulement votre usage
+            - **Flexible** : Utilisez vos crédits existants
+            """)
+        elif model_category == "🖥️ LOCAUX":
+            st.info("""
+            **🎯 Ollama (Local) :**
+            - **100% gratuit** : Aucune clé API nécessaire
+            - **Vie privée** : Tout reste sur votre machine
+            - **Plus lent** : 1-2 minutes de génération
+            - **Hors ligne** : Fonctionne sans internet
+            """)
+        else:
+            st.info("""
+            **🎯 Templates Prédéfinis :**
+            - **Instantané** : Génération immédiate
+            - **Fiable** : Qualité constante
+            - **Personnalisable** : Variables modifiables
+            - **Professionnel** : Designs éprouvés
+            """)
     
     # Zone de prompt
     st.markdown("### 📝 Description du Template")
@@ -1131,3 +1233,55 @@ def ai_template_interface():
         
         for i, template in enumerate(st.session_state.generated_templates):
             display_template_with_variables(template, style_choice)
+
+# === POINT D'ENTRÉE PRINCIPAL ===
+def main():
+    """Fonction principale de l'application"""
+    st.set_page_config(
+        page_title="Mailing Neurafrik - Générateur de Templates",
+        page_icon="📧",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+    
+    # Style CSS personnalisé
+    st.markdown("""
+    <style>
+    .main-header {
+        font-size: 2.5rem;
+        color: #1f2937;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .sub-header {
+        font-size: 1.5rem;
+        color: #374151;
+        margin-bottom: 1rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # En-tête de l'application
+    st.markdown('<h1 class="main-header">📧 Mailing Neurafrik</h1>', unsafe_allow_html=True)
+    st.markdown('<h2 class="sub-header">Générateur Intelligent de Templates Email</h2>', unsafe_allow_html=True)
+    
+    # Initialisation de l'état de session
+    if 'generated_templates' not in st.session_state:
+        st.session_state.generated_templates = []
+    if 'selected_ai_template' not in st.session_state:
+        st.session_state.selected_ai_template = None
+    
+    # Interface principale
+    ai_template_interface()
+    
+    # Pied de page
+    st.markdown("---")
+    st.markdown(
+        "**Mailing Neurafrik** • Génération IA de templates email • "
+        "BYOK (Bring Your Own Key) • "
+        "© 2024 Tous droits réservés"
+    )
+
+# Lancement de l'application
+if __name__ == "__main__":
+    main()

@@ -1,7 +1,15 @@
-streamlit
-requests
-openai>=1.0.0
-anthropic
-google-generativeai
-langchain
-google-genai
+streamlit==1.50.0
+pandas==2.3.2
+numpy==2.3.3
+altair==5.5.0
+pyarrow==21.0.0
+
+# IA (si tu utilises ces API)
+openai==1.109.1
+anthropic==0.68.1
+google-genai==1.39.1
+
+# Utilitaires indispensables
+requests==2.32.5
+tqdm==4.67.1
+watchdog==6.0.0

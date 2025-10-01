@@ -9,5 +9,8 @@ __pycache__/
 
 # Fichiers de logs
 *.log
+#fichiers json 
+email_templates.json
+smtp_configs.json
 
 

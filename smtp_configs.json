@@ -1,8 +1,0 @@
-{
-    "ovh": {
-        "server": "ssl0.ovh.net",
-        "port": 587,
-        "email": "contact@mavou.consulting",
-        "password": "Mavou2025"
-    }
-}

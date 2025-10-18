@@ -1,1 +1,14 @@
-{}
+{
+    "ovh": {
+        "server": "ssl0.ovh.net",
+        "port": 587,
+        "email": "contact@mavou.consulting",
+        "password": "Mavou2025"
+    },
+    "gmail": {
+        "server": "smtp.gmail.com",
+        "port": 587,
+        "email": "aliceentreprise802@gmail.com",
+        "password": "trpe tegv dmvb qhvz"
+    }
+}

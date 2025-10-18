@@ -1,0 +1,13 @@
+{
+    "SMS - neurafrik solution": {
+        "content": "Merci de votre confiance ! Cher/Ch\u00e8re {Pr\u00e9nom} {Nom}, Nous esp\u00e9rons que ce courriel vous trouve bien...",
+        "char_count": 103,
+        "created_at": "2025-10-14T15:05:29.980786",
+        "variables": [
+            "Nom",
+            "Pr\u00e9nom"
+        ],
+        "source": "converted_from_email:Template IA - 15:05",
+        "original_email_template": "Template IA - 15:05"
+    }
+}
